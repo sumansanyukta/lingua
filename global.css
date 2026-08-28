@@ -1,0 +1,41 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  /* ---- Brand / Primary ---- */
+  --color-primary: #6c4ef5;
+  --color-primary-deep: #5b3bf6;
+  --color-blue: #4d8bff;
+  --color-green: #21c16b;
+
+  /* ---- Semantic ---- */
+  --color-success: #21c16b;
+  --color-warning: #ffc800;
+  --color-streak: #ff8a00;
+  --color-error: #ff4d4f;
+  --color-info: #4d8bff;
+
+  /* ---- Neutrals ---- */
+  --color-text: #0d132b;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-surface: #f6f7fb;
+  --color-background: #ffffff;
+
+  /* ---- Fonts (Poppins) ---- */
+  --font-poppins: "Poppins-Regular";
+  --font-poppins-medium: "Poppins-Medium";
+  --font-poppins-semibold: "Poppins-SemiBold";
+  --font-poppins-bold: "Poppins-Bold";
+}
+
+@utility text-highlight {
+  color: var(--color-primary);
+}
+
+@utility shadow-card {
+  box-shadow: 0 8px 24px rgba(13, 19, 43, 0.08);
+}
