@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -20,6 +19,8 @@ type VerificationModalProps = {
   email: string;
   variant: "signUp" | "signIn";
   onClose: () => void;
+  onSubmitCode: (code: string) => Promise<string | null>;
+  onResendCode: () => Promise<string | null>;
 };
 
 export function VerificationModal({
@@ -27,15 +28,22 @@ export function VerificationModal({
   email,
   variant,
   onClose,
+  onSubmitCode,
+  onResendCode,
 }: VerificationModalProps) {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setCode("");
+      setError(null);
+      setIsSubmitting(false);
+      setIsResending(false);
     }
   }, [visible]);
 
@@ -46,14 +54,44 @@ export function VerificationModal({
     }
   }, [visible]);
 
+  const submitCode = useCallback(
+    async (value: string) => {
+      setIsSubmitting(true);
+      setError(null);
+      const message = await onSubmitCode(value);
+      if (message) {
+        setError(message);
+        setCode("");
+        inputRef.current?.focus();
+      }
+      setIsSubmitting(false);
+    },
+    [onSubmitCode],
+  );
+
   useEffect(() => {
-    if (code.length === CODE_LENGTH) {
+    if (
+      visible &&
+      code.length === CODE_LENGTH &&
+      !isSubmitting &&
+      !isResending
+    ) {
       const timer = setTimeout(() => {
-        router.replace("/");
-      }, 350);
+        void submitCode(code);
+      }, 250);
       return () => clearTimeout(timer);
     }
-  }, [code, router]);
+  }, [visible, code, isSubmitting, isResending, submitCode]);
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setError(null);
+    const message = await onResendCode();
+    if (message) {
+      setError(message);
+    }
+    setIsResending(false);
+  };
 
   return (
     <Modal
@@ -126,9 +164,26 @@ export function VerificationModal({
               />
             </View>
 
-            <Pressable className="mt-6 self-center" hitSlop={8}>
-              <Text className="font-poppins-semibold text-[13px] text-primary">
-                Didn&apos;t get it? Resend code
+            {error ? (
+              <Text className="mt-3 text-center font-poppins text-[13px] text-error">
+                {error}
+              </Text>
+            ) : null}
+
+            <Pressable
+              className="mt-6 self-center"
+              hitSlop={8}
+              onPress={() => void handleResend()}
+              disabled={isResending || isSubmitting}
+            >
+              <Text
+                className={`font-poppins-semibold text-[13px] ${
+                  isResending || isSubmitting
+                    ? "text-text-secondary"
+                    : "text-primary"
+                }`}
+              >
+                {isResending ? "Resending..." : "Didn't get it? Resend code"}
               </Text>
             </Pressable>
           </View>

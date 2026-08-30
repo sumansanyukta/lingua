@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth, useSignIn } from "@clerk/expo";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -18,10 +19,79 @@ import { PrimaryButton } from "@/components/primary-button";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { VerificationModal } from "@/components/verification-modal";
 import { images } from "@/constants/images";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { getClerkErrorMessage, hasClerkErrorCode } from "@/lib/clerk";
 
 export default function SignInScreen() {
+  useAuthRedirect({ whenSignedIn: "/" });
+
+  const { isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
+  const { signIn, fetchStatus } = useSignIn();
   const [email, setEmail] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSignIn = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+
+    await signIn.reset();
+
+    const { error: sendError } = await signIn.emailCode.sendCode({
+      emailAddress: email,
+    });
+    if (sendError) {
+      if (isSignedIn) {
+        setIsSubmitting(false);
+        router.replace("/");
+        return;
+      }
+      setError(
+        hasClerkErrorCode(sendError, "form_identifier_not_found")
+          ? "No account found for this email. Sign up instead."
+          : getClerkErrorMessage(sendError),
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(false);
+    setModalVisible(true);
+  };
+
+  const handleSubmitCode = useCallback(
+    async (code: string): Promise<string | null> => {
+      const { error: verifyError } = await signIn.emailCode.verifyCode({ code });
+      if (verifyError) {
+        return getClerkErrorMessage(verifyError);
+      }
+
+      if (signIn.status !== "complete") {
+        return "Sign-in needs an extra step. Please try again.";
+      }
+
+      const { error: finalizeError } = await signIn.finalize();
+      if (finalizeError) {
+        return getClerkErrorMessage(finalizeError);
+      }
+
+      setModalVisible(false);
+      return null;
+    },
+    [signIn],
+  );
+
+  const handleResendCode = useCallback(async (): Promise<string | null> => {
+    const { error } = await signIn.emailCode.sendCode();
+    return getClerkErrorMessage(error);
+  }, [signIn]);
+
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+    void signIn.reset();
+  }, [signIn]);
 
   return (
     <SafeAreaView
@@ -69,8 +139,14 @@ export default function SignInScreen() {
           <View className="mt-6">
             <PrimaryButton
               label="Log In"
-              onPress={() => setModalVisible(true)}
+              onPress={() => void handleSignIn()}
+              disabled={isSubmitting || fetchStatus === "fetching"}
             />
+            {error ? (
+              <Text className="mt-3 text-center font-poppins text-[13px] text-error">
+                {error}
+              </Text>
+            ) : null}
           </View>
 
           <View className="mt-6 flex-row items-center gap-4">
@@ -102,7 +178,9 @@ export default function SignInScreen() {
         visible={modalVisible}
         email={email}
         variant="signIn"
-        onClose={() => setModalVisible(false)}
+        onClose={handleCloseModal}
+        onSubmitCode={handleSubmitCode}
+        onResendCode={handleResendCode}
       />
     </SafeAreaView>
   );

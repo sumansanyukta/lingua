@@ -3,8 +3,11 @@ import { Image, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
 
 export default function Onboarding() {
+  useAuthRedirect({ whenSignedIn: "/" });
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#ffffff" }}
