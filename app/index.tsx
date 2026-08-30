@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { getClerkErrorMessage } from "@/lib/clerk";
 
 export default function Index() {
   useAuthRedirect({ whenSignedOut: "/onboarding" });
@@ -10,11 +11,18 @@ export default function Index() {
   const { isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
   const { signOut } = useClerk();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-    await signOut();
-    setIsSigningOut(false);
+    setError(null);
+    try {
+      await signOut();
+    } catch (signOutError) {
+      setError(getClerkErrorMessage(signOutError));
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   if (!isLoaded) {
@@ -49,6 +57,11 @@ export default function Index() {
           </Text>
         )}
       </Pressable>
+      {error ? (
+        <Text className="mt-3 text-center font-poppins text-[13px] text-error">
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }

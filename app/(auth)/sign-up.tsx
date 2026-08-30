@@ -37,38 +37,42 @@ export default function SignUpScreen() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
+    try {
+      await signUp.reset();
 
-    await signUp.reset();
+      const { error: createError } = await signUp.password({
+        emailAddress: email,
+        password,
+      });
+      if (createError) {
+        if (isSignedIn) {
+          router.replace("/");
+          return;
+        }
+        setError(getClerkErrorMessage(createError));
+        return;
+      }
 
-    const { error: createError } = await signUp.password({
-      emailAddress: email,
-      password,
-    });
-    if (createError) {
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        if (isSignedIn) {
+          router.replace("/");
+          return;
+        }
+        setError(getClerkErrorMessage(sendError));
+        return;
+      }
+
+      setModalVisible(true);
+    } catch (error) {
       if (isSignedIn) {
-        setIsSubmitting(false);
         router.replace("/");
         return;
       }
-      setError(getClerkErrorMessage(createError));
+      setError(getClerkErrorMessage(error));
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    const { error: sendError } = await signUp.verifications.sendEmailCode();
-    if (sendError) {
-      if (isSignedIn) {
-        setIsSubmitting(false);
-        router.replace("/");
-        return;
-      }
-      setError(getClerkErrorMessage(sendError));
-      setIsSubmitting(false);
-      return;
-    }
-
-    setIsSubmitting(false);
-    setModalVisible(true);
   };
 
   const handleSubmitCode = useCallback(

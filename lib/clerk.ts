@@ -4,13 +4,25 @@ type ClerkErrorLike = {
   longMessage?: string;
 };
 
-export function getClerkErrorMessage(error: ClerkErrorLike | null): string | null {
+function asClerkError(error: unknown): ClerkErrorLike | null {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+  return error as ClerkErrorLike;
+}
+
+export function getClerkErrorMessage(error: unknown): string | null {
   if (!error) {
     return null;
   }
-  return error.longMessage || error.message || "Something went wrong. Please try again.";
+  const clerkError = asClerkError(error);
+  return (
+    clerkError?.longMessage ||
+    clerkError?.message ||
+    "Something went wrong. Please try again."
+  );
 }
 
-export function hasClerkErrorCode(error: ClerkErrorLike | null, code: string): boolean {
-  return error?.code === code;
+export function hasClerkErrorCode(error: unknown, code: string): boolean {
+  return asClerkError(error)?.code === code;
 }

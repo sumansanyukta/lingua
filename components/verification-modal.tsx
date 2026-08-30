@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { getClerkErrorMessage } from "@/lib/clerk";
+
 const CODE_LENGTH = 6;
 
 type VerificationModalProps = {
@@ -58,13 +60,18 @@ export function VerificationModal({
     async (value: string) => {
       setIsSubmitting(true);
       setError(null);
-      const message = await onSubmitCode(value);
-      if (message) {
-        setError(message);
-        setCode("");
-        inputRef.current?.focus();
+      try {
+        const message = await onSubmitCode(value);
+        if (message) {
+          setError(message);
+          setCode("");
+          inputRef.current?.focus();
+        }
+      } catch (error) {
+        setError(getClerkErrorMessage(error));
+      } finally {
+        setIsSubmitting(false);
       }
-      setIsSubmitting(false);
     },
     [onSubmitCode],
   );
@@ -86,11 +93,16 @@ export function VerificationModal({
   const handleResend = async () => {
     setIsResending(true);
     setError(null);
-    const message = await onResendCode();
-    if (message) {
-      setError(message);
+    try {
+      const message = await onResendCode();
+      if (message) {
+        setError(message);
+      }
+    } catch (error) {
+      setError(getClerkErrorMessage(error));
+    } finally {
+      setIsResending(false);
     }
-    setIsResending(false);
   };
 
   return (

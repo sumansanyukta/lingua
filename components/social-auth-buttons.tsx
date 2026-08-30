@@ -3,6 +3,8 @@ import { useSSO } from "@clerk/expo";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { getClerkErrorMessage } from "@/lib/clerk";
+
 type SocialOption = {
   icon: "google" | "facebook" | "apple";
   label: string;
@@ -18,9 +20,11 @@ const SOCIAL_OPTIONS: SocialOption[] = [
 export function SocialAuthButtons() {
   const { startSSOFlow } = useSSO();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const handleGoogle = async () => {
     setIsGoogleLoading(true);
+    setGoogleError(null);
     try {
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
@@ -28,8 +32,8 @@ export function SocialAuthButtons() {
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
       }
-    } catch {
-      // User cancelled the flow or it failed - nothing to show.
+    } catch (error) {
+      setGoogleError(getClerkErrorMessage(error));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -65,6 +69,11 @@ export function SocialAuthButtons() {
           </Pressable>
         );
       })}
+      {googleError ? (
+        <Text className="text-center font-poppins text-[13px] text-error">
+          {googleError}
+        </Text>
+      ) : null}
     </View>
   );
 }

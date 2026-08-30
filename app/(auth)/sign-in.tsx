@@ -36,29 +36,35 @@ export default function SignInScreen() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
+    try {
+      await signIn.reset();
 
-    await signIn.reset();
+      const { error: sendError } = await signIn.emailCode.sendCode({
+        emailAddress: email,
+      });
+      if (sendError) {
+        if (isSignedIn) {
+          router.replace("/");
+          return;
+        }
+        setError(
+          hasClerkErrorCode(sendError, "form_identifier_not_found")
+            ? "No account found for this email. Sign up instead."
+            : getClerkErrorMessage(sendError),
+        );
+        return;
+      }
 
-    const { error: sendError } = await signIn.emailCode.sendCode({
-      emailAddress: email,
-    });
-    if (sendError) {
+      setModalVisible(true);
+    } catch (error) {
       if (isSignedIn) {
-        setIsSubmitting(false);
         router.replace("/");
         return;
       }
-      setError(
-        hasClerkErrorCode(sendError, "form_identifier_not_found")
-          ? "No account found for this email. Sign up instead."
-          : getClerkErrorMessage(sendError),
-      );
+      setError(getClerkErrorMessage(error));
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    setIsSubmitting(false);
-    setModalVisible(true);
   };
 
   const handleSubmitCode = useCallback(
