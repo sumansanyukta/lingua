@@ -1,5 +1,3 @@
-import type { ImageSourcePropType } from "react-native";
-
 /**
  * Core learning content types shared across the app.
  *
@@ -11,20 +9,17 @@ import type { ImageSourcePropType } from "react-native";
 
 /** A language the app can teach. */
 export type Language = {
+  /** Stable id used across the app. Doubles as the ISO 639-1 code, e.g. "es". */
   id: string;
   /** Display name, e.g. "Spanish". */
   name: string;
   /** Native name, e.g. "Español". */
   nativeName: string;
-  /** ISO 639-1 language code, e.g. "es". */
-  code: string;
   /**
-   * Country flag image URL (e.g. from https://restcountries.com/flags).
-   * Sized via the `?size=...` query param (e.g. "?size=64").
+   * Country flag image URL served by flagcdn.com, e.g. "https://flagcdn.com/es.svg".
+   * Rendered with expo-image, which supports SVG sources.
    */
   flag: string;
-  /** Optional bundled flag asset used when an offline image is preferred. */
-  flagImage?: ImageSourcePropType;
   /** Approximate global learner count for display, e.g. "28.4M". */
   learners: string;
   /** Short tagline shown in the language list. */
