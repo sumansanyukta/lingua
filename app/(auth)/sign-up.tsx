@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth, useSignUp } from "@clerk/expo";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -18,11 +19,95 @@ import { PrimaryButton } from "@/components/primary-button";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { VerificationModal } from "@/components/verification-modal";
 import { images } from "@/constants/images";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { getClerkErrorMessage } from "@/lib/clerk";
 
 export default function SignUpScreen() {
+  useAuthRedirect({ whenSignedIn: "/" });
+
+  const { isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
+  const { signUp, fetchStatus } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSignUp = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await signUp.reset();
+
+      const { error: createError } = await signUp.password({
+        emailAddress: email,
+        password,
+      });
+      if (createError) {
+        if (isSignedIn) {
+          router.replace("/");
+          return;
+        }
+        setError(getClerkErrorMessage(createError));
+        return;
+      }
+
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        if (isSignedIn) {
+          router.replace("/");
+          return;
+        }
+        setError(getClerkErrorMessage(sendError));
+        return;
+      }
+
+      setModalVisible(true);
+    } catch (error) {
+      if (isSignedIn) {
+        router.replace("/");
+        return;
+      }
+      setError(getClerkErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitCode = useCallback(
+    async (code: string): Promise<string | null> => {
+      const { error: verifyError } = await signUp.verifications.verifyEmailCode({
+        code,
+      });
+      if (verifyError) {
+        return getClerkErrorMessage(verifyError);
+      }
+
+      if (signUp.status !== "complete") {
+        return "Sign-up needs an extra step. Please try again.";
+      }
+
+      const { error: finalizeError } = await signUp.finalize();
+      if (finalizeError) {
+        return getClerkErrorMessage(finalizeError);
+      }
+
+      setModalVisible(false);
+      return null;
+    },
+    [signUp],
+  );
+
+  const handleResendCode = useCallback(async (): Promise<string | null> => {
+    const { error } = await signUp.verifications.sendEmailCode();
+    return getClerkErrorMessage(error);
+  }, [signUp]);
+
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+    void signUp.reset();
+  }, [signUp]);
 
   return (
     <SafeAreaView
@@ -76,8 +161,14 @@ export default function SignUpScreen() {
           <View className="mt-6">
             <PrimaryButton
               label="Sign Up"
-              onPress={() => setModalVisible(true)}
+              onPress={() => void handleSignUp()}
+              disabled={isSubmitting || fetchStatus === "fetching"}
             />
+            {error ? (
+              <Text className="mt-3 text-center font-poppins text-[13px] text-error">
+                {error}
+              </Text>
+            ) : null}
           </View>
 
           <View className="mt-6 flex-row items-center gap-4">
@@ -102,6 +193,9 @@ export default function SignUpScreen() {
               </Text>
             </Pressable>
           </View>
+
+          {/* Required for sign-up flows on Expo web. Clerk skips the browser CAPTCHA on iOS and Android */}
+          <View nativeID="clerk-captcha" />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -109,7 +203,9 @@ export default function SignUpScreen() {
         visible={modalVisible}
         email={email}
         variant="signUp"
-        onClose={() => setModalVisible(false)}
+        onClose={handleCloseModal}
+        onSubmitCode={handleSubmitCode}
+        onResendCode={handleResendCode}
       />
     </SafeAreaView>
   );

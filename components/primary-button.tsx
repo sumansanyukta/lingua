@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, View, ViewStyle } from "react-na
 type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
+  disabled?: boolean;
 };
 
 const GRADIENT = "linear-gradient(135deg, #6c4ef5, #5b3bf6)";
@@ -16,10 +17,11 @@ const buttonStyles = StyleSheet.create({
   } as ViewStyle,
 });
 
-export function PrimaryButton({ label, onPress }: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, disabled = false }: PrimaryButtonProps) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       className="active:opacity-80 disabled:opacity-50"
     >
       <View
