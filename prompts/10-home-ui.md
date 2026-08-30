@@ -6,4 +6,5 @@ Use the learning data from `data/*` to show current lesson, progress, and todayâ
 
 Use assets from the assets folder via the centralized images import. If any image is missing, use a suitable placeholder from Unsplash or Picsum.
 
-@prompt_material/05-home-and-tab-navigation.png
+please refer to the md file.
+@prompt_material/05-home-and-tab-navigation.md
