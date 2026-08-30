@@ -1,4 +1,5 @@
-import { Image, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Image, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
@@ -50,14 +51,15 @@ export default function Onboarding() {
             </Text>
           </View>
 
-          <View
-            className="flex-row items-center justify-center rounded-[20px] bg-primary"
+          <Pressable
+            onPress={() => router.push("/sign-up")}
+            className="flex-row items-center justify-center rounded-[20px] bg-primary active:opacity-80"
             style={{ height: 56 }}
           >
             <Text className="font-poppins-semibold text-lg text-white">
               Get Started
             </Text>
-          </View>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>
