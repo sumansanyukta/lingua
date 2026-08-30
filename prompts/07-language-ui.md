@@ -6,4 +6,6 @@ Replace "See all languages" with confirmation button and use the earth image fro
 
 Add a link on the home screen route (/) to navigate to the language selection screen route.
 
-@prompt_material/04-language-selection-screen.png
+Check the md file not the image file
+
+@prompt_material/04-language-selection-screen.md

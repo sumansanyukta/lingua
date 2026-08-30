@@ -1,4 +1,5 @@
 import { useAuth, useClerk } from "@clerk/expo";
+import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
@@ -45,9 +46,18 @@ export default function Index() {
       </Text>
 
       <Pressable
+        onPress={() => router.push("/language-selection")}
+        className="mt-8 h-[56px] w-[220px] items-center justify-center rounded-[20px] bg-primary active:opacity-80"
+      >
+        <Text className="font-poppins-semibold text-lg text-white">
+          Choose a language
+        </Text>
+      </Pressable>
+
+      <Pressable
         onPress={() => void handleSignOut()}
         disabled={isSigningOut}
-        className="mt-8 h-[56px] flex-row items-center justify-center rounded-[20px] border border-border bg-white px-6 active:bg-surface disabled:opacity-50"
+        className="mt-4 h-[56px] w-[220px] flex-row items-center justify-center rounded-[20px] border border-border bg-white active:bg-surface disabled:opacity-50"
       >
         {isSigningOut ? (
           <ActivityIndicator size="small" color="#0D132B" />
