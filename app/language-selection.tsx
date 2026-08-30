@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
 import { languages } from "@/data/languages";
+import { useLanguageStore } from "@/store/language-store";
 import type { Language } from "@/types/learning";
 
 type LanguageRowProps = {
@@ -54,6 +55,7 @@ function LanguageRow({ language, selected, onPress }: LanguageRowProps) {
 export default function LanguageSelection() {
   const [selectedId, setSelectedId] = useState<string | null>(languages[0]?.id ?? null);
   const [query, setQuery] = useState("");
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
 
   const filteredLanguages = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -71,7 +73,8 @@ export default function LanguageSelection() {
     if (!selectedId) {
       return;
     }
-    router.back();
+    setLanguage(selectedId);
+    router.replace("/");
   };
 
   return (
