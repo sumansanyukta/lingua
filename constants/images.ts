@@ -6,6 +6,7 @@ import palace from "@/assets/images/palace.png";
 import streakFire from "@/assets/images/streak-fire.png";
 import treasure from "@/assets/images/treasure.png";
 import tutorAvatar from "@/assets/images/tutor-avatar.jpg";
+import indoorCozyRoom from "@/assets/images/indoor-cozy-room.jpeg";
 
 export const images = {
   earth,
@@ -16,4 +17,5 @@ export const images = {
   streakFire,
   treasure,
   tutorAvatar,
+  indoorCozyRoom,
 };
