@@ -1,57 +1,38 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
+import type { ComponentProps } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { TABS, type TabConfig, type TabKey } from "@/constants/tab-bar";
 import { colors } from "@/theme";
 
-type TabItem = {
-  key: string;
-  route: Href;
-  label: string;
-  outline: React.ReactNode;
-  filled: React.ReactNode;
-};
+function TabIcon({ tab, active }: { tab: TabConfig; active: boolean }) {
+  const color = active ? colors.brand.purple : colors.text.secondary;
+  const size = active ? 22 : 24;
 
-const TABS: TabItem[] = [
-  {
-    key: "home",
-    route: "/",
-    label: "Home",
-    outline: <Ionicons name="home-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="home" size={22} color="#6C4EF5" />,
-  },
-  {
-    key: "learn",
-    route: "/learn",
-    label: "Learn",
-    outline: <Ionicons name="book-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="book" size={22} color="#6C4EF5" />,
-  },
-  {
-    key: "ai-teacher",
-    route: "/ai-teacher",
-    label: "AI Teacher",
-    outline: <MaterialCommunityIcons name="robot-outline" size={24} color={colors.text.secondary} />,
-    filled: <MaterialCommunityIcons name="robot" size={22} color="#6C4EF5" />,
-  },
-  {
-    key: "chat",
-    route: "/chat",
-    label: "Chat",
-    outline: <Ionicons name="chatbubble-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="chatbubble" size={22} color="#6C4EF5" />,
-  },
-  {
-    key: "profile",
-    route: "/profile",
-    label: "Profile",
-    outline: <Ionicons name="person-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="person" size={22} color="#6C4EF5" />,
-  },
-];
+  if (tab.family === "material-community") {
+    // MaterialCommunityIcons has no `robot-outline`; keep `robot` for both states.
+    const name = (active ? tab.filledIcon : tab.filledIcon) as ComponentProps<
+      typeof MaterialCommunityIcons
+    >["name"];
+    return <MaterialCommunityIcons name={name} size={size} color={color} />;
+  }
 
-export function BottomTabBar({ active }: { active: string }) {
+  const name = (active ? tab.filledIcon : `${tab.filledIcon}-outline`) as ComponentProps<
+    typeof Ionicons
+  >["name"];
+  return <Ionicons name={name} size={size} color={color} />;
+}
+
+function routeForTab(tab: TabConfig): Href {
+  if (tab.routeName === "index") {
+    return "/";
+  }
+  return `/${tab.routeName}` as Href;
+}
+
+export function BottomTabBar({ active }: { active: TabKey | string }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -63,14 +44,14 @@ export function BottomTabBar({ active }: { active: string }) {
           return (
             <Pressable
               key={tab.key}
-              onPress={() => router.replace(tab.route)}
+              onPress={() => router.replace(routeForTab(tab))}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={tab.label}
               className="flex-1 items-center active:opacity-70"
             >
               <View className="h-10 items-center justify-center" style={{ marginTop: 6 }}>
-                {isActive ? tab.filled : tab.outline}
+                <TabIcon tab={tab} active={isActive} />
               </View>
               {!isActive ? (
                 <Text

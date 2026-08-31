@@ -11,7 +11,7 @@ type Props = {
   cameraOn: boolean;
   micOn: boolean;
   subtitlesOn: boolean;
-  onToggle: (control: "camera" | "mic" | "subtitles" | "endCall") => void;
+  onToggle: (control: "camera" | "mic" | "subtitles") => void;
   onEndCall: () => void;
 };
 

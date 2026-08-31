@@ -1,13 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { useEffect, useState, type ReactNode } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import type { ComponentProps } from "react";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,46 +10,13 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { TABS, tabByRouteName, type TabConfig } from "@/constants/tab-bar";
 import { colors } from "@/theme";
 
 const BAR_HEIGHT = 58;
 const CIRCLE_SIZE = 46;
 const ICON_SLOT_TOP = 6;
 const ICON_SLOT_SIZE = 40;
-
-type TabConfig = {
-  label: string;
-  outline: ReactNode;
-  filled: ReactNode;
-};
-
-const TAB_ICONS: Record<string, TabConfig> = {
-  index: {
-    label: "Home",
-    outline: <Ionicons name="home-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="home" size={22} color="#FFFFFF" />,
-  },
-  learn: {
-    label: "Learn",
-    outline: <Ionicons name="book-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="book" size={22} color="#FFFFFF" />,
-  },
-  "ai-teacher": {
-    label: "AI Teacher",
-    outline: <MaterialCommunityIcons name="robot-outline" size={24} color={colors.text.secondary} />,
-    filled: <MaterialCommunityIcons name="robot" size={22} color="#FFFFFF" />,
-  },
-  chat: {
-    label: "Chat",
-    outline: <Ionicons name="chatbubble-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="chatbubble" size={22} color="#FFFFFF" />,
-  },
-  profile: {
-    label: "Profile",
-    outline: <Ionicons name="person-outline" size={24} color={colors.text.secondary} />,
-    filled: <Ionicons name="person" size={22} color="#FFFFFF" />,
-  },
-};
 
 const CIRCLE_CENTER_Y = ICON_SLOT_TOP + ICON_SLOT_SIZE / 2;
 
@@ -74,6 +36,28 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 });
+
+function ActiveIcon({ tab }: { tab: TabConfig }) {
+  if (tab.family === "material-community") {
+    const name = tab.filledIcon as ComponentProps<typeof MaterialCommunityIcons>["name"];
+    return <MaterialCommunityIcons name={name} size={22} color="#FFFFFF" />;
+  }
+  const name = tab.filledIcon as ComponentProps<typeof Ionicons>["name"];
+  return <Ionicons name={name} size={22} color="#FFFFFF" />;
+}
+
+function InactiveIcon({ tab }: { tab: TabConfig }) {
+  const color = colors.text.secondary;
+
+  if (tab.family === "material-community") {
+    // MaterialCommunityIcons has no `robot-outline`; use `robot` for both states.
+    const name = tab.filledIcon as ComponentProps<typeof MaterialCommunityIcons>["name"];
+    return <MaterialCommunityIcons name={name} size={24} color={color} />;
+  }
+
+  const name = `${tab.filledIcon}-outline` as ComponentProps<typeof Ionicons>["name"];
+  return <Ionicons name={name} size={24} color={color} />;
+}
 
 export function TabBar({ state, navigation }: Pick<BottomTabBarProps, "state" | "navigation">) {
   const insets = useSafeAreaInsets();
@@ -107,7 +91,7 @@ export function TabBar({ state, navigation }: Pick<BottomTabBarProps, "state" | 
         <Animated.View style={[styles.circle, circleStyle]} />
 
         {state.routes.map((route, index) => {
-          const config = TAB_ICONS[route.name];
+          const tab = tabByRouteName(route.name) ?? TABS[0];
           const isActive = state.index === index;
 
           const onPress = () => {
@@ -127,14 +111,14 @@ export function TabBar({ state, navigation }: Pick<BottomTabBarProps, "state" | 
               onPress={onPress}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={config.label}
+              accessibilityLabel={tab.label}
               className="flex-1 items-center active:opacity-70"
             >
               <View
                 className="items-center justify-center"
                 style={{ height: ICON_SLOT_SIZE, marginTop: ICON_SLOT_TOP }}
               >
-                {isActive ? config.filled : config.outline}
+                {isActive ? <ActiveIcon tab={tab} /> : <InactiveIcon tab={tab} />}
               </View>
 
               {isActive ? null : (
@@ -142,7 +126,7 @@ export function TabBar({ state, navigation }: Pick<BottomTabBarProps, "state" | 
                   numberOfLines={1}
                   className="absolute bottom-[5px] left-0 right-0 text-center font-poppins-semibold text-[11px] leading-[14px] text-text-secondary"
                 >
-                  {config.label}
+                  {tab.label}
                 </Text>
               )}
             </Pressable>
