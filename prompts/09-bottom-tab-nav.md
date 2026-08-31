@@ -6,4 +6,5 @@ Build a custom tab bar with an active circular indicator for the selected tab. T
 
 Do not implement the Home screen UI yet.
 
-@prompt_material/05-home-and-tab-navigation.png
+Do not refer to the image file, refer to the md file.
+@prompt_material/05-home-and-tab-navigation.md
