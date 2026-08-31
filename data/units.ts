@@ -50,6 +50,51 @@ export const units: Unit[] = [
     title: "Greetings",
     description: "Learn polite greetings and introductions.",
   },
+
+  // ---- Korean ----
+  {
+    id: "ko-unit-1",
+    languageId: "ko",
+    order: 0,
+    title: "Basics",
+    description: "Say hello and introduce yourself.",
+  },
+
+  // ---- German ----
+  {
+    id: "de-unit-1",
+    languageId: "de",
+    order: 0,
+    title: "Basics",
+    description: "Greet, thank and say your name.",
+  },
+
+  // ---- Chinese ----
+  {
+    id: "zh-unit-1",
+    languageId: "zh",
+    order: 0,
+    title: "Greetings",
+    description: "Start polite conversations in Mandarin.",
+  },
+
+  // ---- Italian ----
+  {
+    id: "it-unit-1",
+    languageId: "it",
+    order: 0,
+    title: "Basics",
+    description: "Say hello and talk about yourself.",
+  },
+
+  // ---- Portuguese ----
+  {
+    id: "pt-unit-1",
+    languageId: "pt",
+    order: 0,
+    title: "Basics",
+    description: "Greet people and introduce yourself.",
+  },
 ];
 
 /** Get all units that belong to a language. */
